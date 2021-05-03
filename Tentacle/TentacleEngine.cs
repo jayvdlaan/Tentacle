@@ -34,22 +34,17 @@ namespace Tentacle
             }
 
             int TotalPages = 0;
-            foreach(var Entry in m_Entries)
+            foreach (var Entry in m_Entries)
                 TotalPages += Entry.Page.GetPageCount();
 
             List<int> RemovalQueue = new List<int>();
             int Index = 0;
-            float Progress = 0;
-            float ProgressIncrement = 100 / TotalPages;
-            AdvanceProgress(Progress);
+            m_DownloadProgress = 0f;
+            m_DownloadProgressStep = 100f / TotalPages / 100f;
+            AdvanceProgress();
             foreach (var Entry in m_Entries)
             {
-                if (DownloadEntry(Entry, ProgressIncrement))
-                {
-                    Progress += ProgressIncrement;
-                    AdvanceProgress(Progress);
-                }
-                else
+                if (!DownloadEntry(Entry))
                 {
                     MessageBox.Show("Something went wrong when downloading entry with code: " + Entry.MagicCode.ToString());
                     break;
@@ -59,8 +54,11 @@ namespace Tentacle
                 Index++;
             }
 
-            foreach(var CurrIndex in RemovalQueue.Reverse<int>())
+            foreach (var CurrIndex in RemovalQueue.Reverse<int>())
                 RemoveEntry(CurrIndex);
+
+            m_DownloadProgress = 100f;
+            AdvanceProgress();
         }
 
         public void AddEntry(int a_MagicCode)
@@ -82,7 +80,8 @@ namespace Tentacle
         public void RemoveEntry(int a_Index)
         {
             m_Entries.RemoveAt(a_Index);
-            m_Form.m_ListView.Items.RemoveAt(a_Index);
+            Action Mod1 = () => m_Form.m_ListView.Items.RemoveAt(a_Index);
+            m_Form.m_ListView.Invoke(Mod1);
         }
 
         public void PromptForDirectory()
@@ -95,20 +94,24 @@ namespace Tentacle
             }
         }
 
-        public void AdvanceProgress(float a_ProgressPercentage)
+        public void AdvanceProgress()
         {
-            if (a_ProgressPercentage > 100f)
-                a_ProgressPercentage = 100f;
+            if (m_DownloadProgress > 100f)
+                m_DownloadProgress = 100f;
 
-            int Percentage = (int)Math.Abs(a_ProgressPercentage);
-            m_Form.m_ProgressBar.Value = Percentage;
-            m_Form.m_ProgressLabel.Text = Percentage + "%";
+            int Percentage = (int)Math.Ceiling(m_DownloadProgress);
+            Action Mod1 = () => m_Form.m_ProgressBar.Value = Percentage;
+            m_Form.m_ProgressBar.Invoke(Mod1);
+
+            Action Mod2 = () => m_Form.m_ProgressLabel.Text = Percentage + "%";
+            m_Form.m_ProgressBar.Invoke(Mod2);
         }
 
-        private bool DownloadEntry(TentacleEntry a_Entry, float a_IncrementValue)
+        private bool DownloadEntry(TentacleEntry a_Entry)
         {
-            a_IncrementValue = a_IncrementValue / 100f;
             var Client = new WebClient();
+            Client.DownloadProgressChanged += PageDownloadProgressChanged;
+            Client.DownloadFileCompleted += PageDownloadComplete;
             var DownloadDir = m_DownloadDir + '/' + a_Entry.MagicCode.ToString();
             try
             {
@@ -129,15 +132,41 @@ namespace Tentacle
                 var FileNamePos = ImageLink.LastIndexOf('/');
                 var FullFilePath = DownloadDir + '/' + ImageLink.Substring(FileNamePos + 1);
 
-                Client.DownloadFile(ImageLink, FullFilePath);
-                Thread.Sleep(500);
+                m_SubTaskProgress = 0;
+                m_DownloadContinueLock = new Object();
+                lock (m_DownloadContinueLock)
+                {
+                    Client.DownloadFileAsync(new Uri(ImageLink), FullFilePath);
+                    Monitor.Wait(m_DownloadContinueLock);
+                    Thread.Sleep(100);
+                }
             }
 
             return true;
         }
 
+        private void PageDownloadProgressChanged(object a_Sender, DownloadProgressChangedEventArgs a_Args)
+        {
+            int ProgressDelta = a_Args.ProgressPercentage - m_SubTaskProgress;
+            m_SubTaskProgress = a_Args.ProgressPercentage;
+            m_DownloadProgress += ProgressDelta * m_DownloadProgressStep;
+            AdvanceProgress();
+        }
+
+        private void PageDownloadComplete(object a_Sender, System.ComponentModel.AsyncCompletedEventArgs a_Args)
+        {
+            lock (m_DownloadContinueLock)
+            {
+                Monitor.Pulse(m_DownloadContinueLock);
+            }
+        }
+
         private List<TentacleEntry> m_Entries;
+        private float m_DownloadProgress;
+        private float m_DownloadProgressStep;
         private string m_DownloadDir;
+        private object m_DownloadContinueLock;
+        private int m_SubTaskProgress;
         private MainForm m_Form;
     }
 }

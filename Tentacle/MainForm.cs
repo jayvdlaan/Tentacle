@@ -17,6 +17,8 @@ namespace Tentacle
         {
             InitializeComponent();
             m_TentacleEngine = a_TentacleEngine;
+            m_TentacleWorker = new BackgroundWorker();
+            m_TentacleWorker.DoWork += DoDownloadEntries;
         }
 
         private void AddButton_Click(object sender, EventArgs e)
@@ -38,6 +40,11 @@ namespace Tentacle
             //Thread Thread = new Thread(new ThreadStart(m_TentacleEngine.DownloadEntries));
             //Thread.IsBackground = true;
             //Thread.Start();
+            m_TentacleWorker.RunWorkerAsync();
+        }
+
+        private void DoDownloadEntries(object a_Sender, DoWorkEventArgs a_Args)
+        {
             m_TentacleEngine.DownloadEntries();
         }
       
@@ -62,5 +69,6 @@ namespace Tentacle
         }
 
         private TentacleEngine m_TentacleEngine;
+        private BackgroundWorker m_TentacleWorker;
     }
 }
