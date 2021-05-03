@@ -16,7 +16,7 @@ namespace Tentacle
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            var TentacleEngine = new TentacleEngine();
         }
     }
 }
