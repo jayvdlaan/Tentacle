@@ -103,6 +103,44 @@ namespace Tentacle
             var Node = Page.GetElementbyId("image-container").FirstChild.FirstChild;
             return Node.Attributes[0].Value;
         }
+       
+        static public bool GetTrendingCodes(out List<int> a_TrendingCodes)
+        {
+            TentaclePage Page = new TentaclePage("https://nhentai.net/");
+            Page.Load();
+            return Page.GetTrending(out a_TrendingCodes);
+        }
+
+        private bool GetTrending(out List<int> a_TrendingCodes)
+        {
+            var Content = m_MainPageContent.GetElementbyId("content").ChildNodes;
+            a_TrendingCodes = new List<int>();
+            foreach (var Node in Content)
+            {
+                if (!Node.HasClass("index-popular"))
+                    continue;
+
+                var PopularNodes = Node.ChildNodes;
+                foreach (var PopularNode in PopularNodes)
+                {
+                    if (!PopularNode.HasClass("gallery"))
+                        continue;
+
+                    var Attribs = PopularNode.ChildNodes[0].Attributes;
+                    foreach (var Attrib in Attribs)
+                    {
+                        if (Attrib.Name != "href")
+                            continue;
+
+                        a_TrendingCodes.Add(int.Parse(Attrib.Value.Substring(3, Attrib.Value.Length - 4)));
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
 
         private HtmlNodeCollection GetPageInfo()
         {

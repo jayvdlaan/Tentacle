@@ -12,6 +12,7 @@ each page to a seperate folder in the user-specified download directory.
 ## Features
 - Download one or multiple comics by only inputting their "magic codes"
 - Download comics in folders named after their "magic codes"
+- Scrape the currently trending comics
 
 ## Screenshots
-![Main Screen](https://i.imgur.com/o0QwSdW.png "Main Screen")
+![Main Screen](https://imgur.com/wuPVTdv.png "Main Screen")

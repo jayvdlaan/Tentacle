@@ -45,6 +45,7 @@ namespace Tentacle
             this.PathInput = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
+            this.LoadTrendingButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -147,27 +148,38 @@ namespace Tentacle
             // 
             // PathInput
             // 
-            this.PathInput.Location = new System.Drawing.Point(321, 9);
+            this.PathInput.Location = new System.Drawing.Point(423, 9);
             this.PathInput.MaxLength = 255;
             this.PathInput.Name = "PathInput";
             this.PathInput.ReadOnly = true;
-            this.PathInput.Size = new System.Drawing.Size(382, 20);
+            this.PathInput.Size = new System.Drawing.Size(280, 20);
             this.PathInput.TabIndex = 8;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(283, 12);
+            this.label2.Location = new System.Drawing.Point(385, 13);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(32, 13);
             this.label2.TabIndex = 7;
             this.label2.Text = "Path:";
+            // 
+            // LoadTrendingButton
+            // 
+            this.LoadTrendingButton.Location = new System.Drawing.Point(273, 8);
+            this.LoadTrendingButton.Name = "LoadTrendingButton";
+            this.LoadTrendingButton.Size = new System.Drawing.Size(95, 23);
+            this.LoadTrendingButton.TabIndex = 10;
+            this.LoadTrendingButton.Text = "Load Trending";
+            this.LoadTrendingButton.UseVisualStyleBackColor = true;
+            this.LoadTrendingButton.Click += new System.EventHandler(this.LoadTrendingButton_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.LoadTrendingButton);
             this.Controls.Add(this.PathButton);
             this.Controls.Add(this.PathInput);
             this.Controls.Add(this.label2);
@@ -203,6 +215,7 @@ namespace Tentacle
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.ColumnHeader columnHeader4;
+        private System.Windows.Forms.Button LoadTrendingButton;
     }
 }
 

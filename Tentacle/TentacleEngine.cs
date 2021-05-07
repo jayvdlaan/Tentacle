@@ -29,6 +29,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Net;
 using System.Threading;
+using System.Reflection;
 
 namespace Tentacle
 {
@@ -83,6 +84,22 @@ namespace Tentacle
             AdvanceProgress();
         }
 
+        public void AddTrendingEntries()
+        {
+            List<int> TrendingCodes;
+            if (!TentaclePage.GetTrendingCodes(out TrendingCodes))
+                return;
+
+            m_DownloadProgress = 0f;
+            m_DownloadProgressStep = 100f / 5f;
+            foreach (var Code in TrendingCodes)
+            { 
+                AddEntry(Code);
+                m_DownloadProgress += m_DownloadProgressStep;
+                AdvanceProgress();
+            }
+        }
+
         public void AddEntry(int a_MagicCode)
         {
             TentacleEntry Entry;
@@ -95,15 +112,14 @@ namespace Tentacle
                 m_Entries.Add(Entry);
 
                 string[] ListEntry = { a_MagicCode.ToString(), Entry.Page.GetURL(), Entry.Page.GetPrettyTitle(), Entry.Page.GetPageCount().ToString() };
-                m_Form.m_ListView.Items.Add(new ListViewItem(ListEntry));
+                InvokeOnForm(() => m_Form.m_ListView.Items.Add(new ListViewItem(ListEntry)));
             }
         }
 
         public void RemoveEntry(int a_Index)
         {
             m_Entries.RemoveAt(a_Index);
-            Action Mod1 = () => m_Form.m_ListView.Items.RemoveAt(a_Index);
-            m_Form.m_ListView.Invoke(Mod1);
+            InvokeOnForm(() => m_Form.m_ListView.Items.RemoveAt(a_Index));
         }
 
         public void PromptForDirectory()
@@ -122,11 +138,8 @@ namespace Tentacle
                 m_DownloadProgress = 100f;
 
             int Percentage = (int)Math.Ceiling(m_DownloadProgress);
-            Action Mod1 = () => m_Form.m_ProgressBar.Value = Percentage;
-            m_Form.m_ProgressBar.Invoke(Mod1);
-
-            Action Mod2 = () => m_Form.m_ProgressLabel.Text = Percentage + "%";
-            m_Form.m_ProgressBar.Invoke(Mod2);
+            InvokeOnForm(() => m_Form.m_ProgressBar.Value = Percentage);
+            InvokeOnForm(() => m_Form.m_ProgressLabel.Text = Percentage + "%");
         }
 
         private bool DownloadEntry(TentacleEntry a_Entry)
@@ -181,6 +194,11 @@ namespace Tentacle
             {
                 Monitor.Pulse(m_DownloadContinueLock);
             }
+        }
+
+        private void InvokeOnForm(Action a_Delegate)
+        {
+            m_Form.Invoke(a_Delegate);
         }
 
         private List<TentacleEntry> m_Entries;

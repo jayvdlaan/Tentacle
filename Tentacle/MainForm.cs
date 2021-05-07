@@ -16,9 +16,7 @@ namespace Tentacle
         public MainForm(TentacleEngine a_TentacleEngine)
         {
             InitializeComponent();
-            m_TentacleEngine = a_TentacleEngine;
-            m_TentacleWorker = new BackgroundWorker();
-            m_TentacleWorker.DoWork += DoDownloadEntries;
+            m_TentacleEngine = a_TentacleEngine;           
         }
 
         private void AddButton_Click(object sender, EventArgs e)
@@ -37,17 +35,30 @@ namespace Tentacle
         
         private void DownloadButton_Click(object sender, EventArgs e)
         {
-            //Thread Thread = new Thread(new ThreadStart(m_TentacleEngine.DownloadEntries));
-            //Thread.IsBackground = true;
-            //Thread.Start();
-            m_TentacleWorker.RunWorkerAsync();
+            DoWork(DoDownloadEntries);
+        }
+        private void LoadTrendingButton_Click(object sender, EventArgs e)
+        {
+            DoWork(DoLoadTrending);
         }
 
         private void DoDownloadEntries(object a_Sender, DoWorkEventArgs a_Args)
         {
             m_TentacleEngine.DownloadEntries();
         }
+
+        private void DoLoadTrending(object a_Sender, DoWorkEventArgs a_Args)
+        {
+            m_TentacleEngine.AddTrendingEntries();
+        }
       
+        private void DoWork(DoWorkEventHandler a_WorkerMethod)
+        {
+            var Worker = new BackgroundWorker();
+            Worker.DoWork += a_WorkerMethod;
+            Worker.RunWorkerAsync();
+        }
+
         public ProgressBar m_ProgressBar
         {
             get { return progressBar1; }
@@ -69,6 +80,5 @@ namespace Tentacle
         }
 
         private TentacleEngine m_TentacleEngine;
-        private BackgroundWorker m_TentacleWorker;
     }
 }
